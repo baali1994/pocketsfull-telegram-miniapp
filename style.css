@@ -1,7 +1,7 @@
 :root {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   color-scheme: dark;
-  --pf-safe-top: 0px;
+  --pf-top-space: 90px;
 }
 
 * { box-sizing: border-box; }
@@ -22,7 +22,7 @@ body {
   min-height: 100%;
   display: grid;
   place-items: center;
-  padding: calc(var(--pf-safe-top) + 24px) 24px 24px;
+  padding: calc(var(--pf-top-space) + 24px) 24px 24px;
   background: #000000;
 }
 
@@ -82,7 +82,7 @@ button {
   left: 0;
   right: 0;
   bottom: 0;
-  top: var(--pf-safe-top);
+  top: var(--pf-top-space);
   overflow: hidden;
   background: #000000;
 }
