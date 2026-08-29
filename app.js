@@ -1,7 +1,10 @@
 (() => {
+  const loadingEl = document.getElementById("loading");
   const statusEl = document.getElementById("status");
   const errorEl = document.getElementById("error");
   const retryEl = document.getElementById("retry");
+  const wallShellEl = document.getElementById("wallShell");
+  const wallFrameEl = document.getElementById("wallFrame");
 
   function setStatus(text) {
     statusEl.textContent = text;
@@ -10,10 +13,20 @@
   }
 
   function showError(message) {
+    loadingEl.hidden = false;
+    wallShellEl.hidden = true;
     statusEl.textContent = "";
     errorEl.textContent = message;
     errorEl.hidden = false;
     retryEl.hidden = false;
+  }
+
+  function applySafeArea(tg) {
+    const contentTop = Number(tg?.contentSafeAreaInset?.top || 0);
+    const safeTop = Number(tg?.safeAreaInset?.top || 0);
+    const top = contentTop > 0 ? contentTop : safeTop > 0 ? safeTop + 56 : 72;
+
+    document.documentElement.style.setProperty("--pf-safe-top", `${Math.ceil(top)}px`);
   }
 
   async function launch() {
@@ -26,6 +39,11 @@
 
       tg.ready();
       tg.expand();
+      applySafeArea(tg);
+
+      tg.onEvent?.("safeAreaChanged", () => applySafeArea(tg));
+      tg.onEvent?.("contentSafeAreaChanged", () => applySafeArea(tg));
+      tg.onEvent?.("viewportChanged", () => applySafeArea(tg));
 
       if (!tg.initData) {
         throw new Error("No Telegram authentication data was received. Open the Mini App from @pocketsfull_bot.");
@@ -47,7 +65,10 @@
       }
 
       setStatus("Opening PocketsFull…");
-      window.location.replace(payload.targetUrl);
+
+      wallFrameEl.src = payload.targetUrl;
+      wallShellEl.hidden = false;
+      loadingEl.hidden = true;
     } catch (err) {
       showError(err?.message || "Something went wrong.");
     }
