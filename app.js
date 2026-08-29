@@ -21,15 +21,12 @@
     retryEl.hidden = false;
   }
 
-  function applySafeArea(tg) {
-    const safeTop = Number(tg?.safeAreaInset?.top || 0);
-
-    // Keep only enough room for Telegram's Close / menu controls.
-    // Cap it so iOS cannot create a large blank header area.
-    const calculatedTop = safeTop > 0 ? safeTop + 48 : 88;
-    const top = Math.min(104, Math.max(88, calculatedTop));
-
-    document.documentElement.style.setProperty("--pf-safe-top", `${Math.ceil(top)}px`);
+  function forceDarkTelegramChrome(tg) {
+    try { tg.setHeaderColor?.("#0f1720"); } catch {}
+    try { tg.setBackgroundColor?.("#0f1720"); } catch {}
+    try { tg.setBottomBarColor?.("#0f1720"); } catch {}
+    document.documentElement.style.background = "#0f1720";
+    document.body.style.background = "#0f1720";
   }
 
   async function launch() {
@@ -40,16 +37,13 @@
         throw new Error("Telegram Mini App API was not found. Open this page from @pocketsfull_bot.");
       }
 
+      forceDarkTelegramChrome(tg);
       tg.ready();
       tg.expand();
-      tg.setHeaderColor?.("#0f1720");
-      tg.setBackgroundColor?.("#0f1720");
-      document.documentElement.style.background = "#0f1720";
-      document.body.style.background = "#0f1720";
-      applySafeArea(tg);
+      forceDarkTelegramChrome(tg);
 
-      tg.onEvent?.("safeAreaChanged", () => applySafeArea(tg));
-      tg.onEvent?.("viewportChanged", () => applySafeArea(tg));
+      tg.onEvent?.("themeChanged", () => forceDarkTelegramChrome(tg));
+      tg.onEvent?.("viewportChanged", () => forceDarkTelegramChrome(tg));
 
       if (!tg.initData) {
         throw new Error("No Telegram authentication data was received. Open the Mini App from @pocketsfull_bot.");
@@ -71,7 +65,6 @@
       }
 
       setStatus("Opening PocketsFull…");
-
       wallFrameEl.src = payload.targetUrl;
       wallShellEl.hidden = false;
       loadingEl.hidden = true;
