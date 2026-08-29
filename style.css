@@ -1,6 +1,6 @@
 :root {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-  --pf-safe-top: var(--tg-content-safe-area-inset-top, 72px);
+  --pf-safe-top: 104px;
 }
 
 * { box-sizing: border-box; }
