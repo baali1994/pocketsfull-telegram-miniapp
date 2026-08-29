@@ -24,7 +24,16 @@
   function applySafeArea(tg) {
     const contentTop = Number(tg?.contentSafeAreaInset?.top || 0);
     const safeTop = Number(tg?.safeAreaInset?.top || 0);
-    const top = contentTop > 0 ? contentTop : safeTop > 0 ? safeTop + 56 : 72;
+
+    // Telegram can report a very small/zero content inset on some iOS builds
+    // even though the Close and menu controls still cover the page. Keep a
+    // guaranteed clear header zone, while allowing Telegram to request more.
+    const minimumTelegramChrome = 104;
+    const telegramReportedTop = Math.max(
+      contentTop,
+      safeTop > 0 ? safeTop + 56 : 0
+    );
+    const top = Math.max(minimumTelegramChrome, telegramReportedTop);
 
     document.documentElement.style.setProperty("--pf-safe-top", `${Math.ceil(top)}px`);
   }
@@ -39,6 +48,7 @@
 
       tg.ready();
       tg.expand();
+      tg.setHeaderColor?.("#0f1720");
       applySafeArea(tg);
 
       tg.onEvent?.("safeAreaChanged", () => applySafeArea(tg));
