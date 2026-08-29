@@ -22,19 +22,12 @@
   }
 
   function applySafeArea(tg) {
-    const contentTop = Number(tg?.contentSafeAreaInset?.top || 0);
     const safeTop = Number(tg?.safeAreaInset?.top || 0);
 
-    // Keep the PocketsFull wall completely below Telegram's Close/menu row.
-    // Some Telegram iOS builds report an inset that is smaller than the
-    // visible controls, so enforce a larger minimum and still honor a larger
-    // value when Telegram reports one.
-    const minimumTelegramChrome = 128;
-    const telegramReportedTop = Math.max(
-      contentTop,
-      safeTop > 0 ? safeTop + 64 : 0
-    );
-    const top = Math.max(minimumTelegramChrome, telegramReportedTop);
+    // Keep only enough room for Telegram's Close / menu controls.
+    // Cap it so iOS cannot create a large blank header area.
+    const calculatedTop = safeTop > 0 ? safeTop + 48 : 88;
+    const top = Math.min(104, Math.max(88, calculatedTop));
 
     document.documentElement.style.setProperty("--pf-safe-top", `${Math.ceil(top)}px`);
   }
@@ -50,10 +43,12 @@
       tg.ready();
       tg.expand();
       tg.setHeaderColor?.("#0f1720");
+      tg.setBackgroundColor?.("#0f1720");
+      document.documentElement.style.background = "#0f1720";
+      document.body.style.background = "#0f1720";
       applySafeArea(tg);
 
       tg.onEvent?.("safeAreaChanged", () => applySafeArea(tg));
-      tg.onEvent?.("contentSafeAreaChanged", () => applySafeArea(tg));
       tg.onEvent?.("viewportChanged", () => applySafeArea(tg));
 
       if (!tg.initData) {
