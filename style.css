@@ -1,7 +1,7 @@
 :root {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   color-scheme: dark;
-  --pf-top-space: 90px;
+  --pf-top-space: 200px;
 }
 
 * { box-sizing: border-box; }
