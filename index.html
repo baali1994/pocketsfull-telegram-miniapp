@@ -9,7 +9,7 @@
   <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
 </head>
 <body>
-  <main class="shell">
+  <main id="loading" class="shell">
     <section class="card" aria-live="polite">
       <div class="logo">PF</div>
       <h1>PocketsFull</h1>
@@ -18,6 +18,17 @@
       <button id="retry" type="button" hidden>Try again</button>
     </section>
   </main>
+
+  <section id="wallShell" class="wall-shell" hidden>
+    <iframe
+      id="wallFrame"
+      class="wall-frame"
+      title="PocketsFull Earn"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allow="clipboard-read; clipboard-write; payment"
+      allowfullscreen
+    ></iframe>
+  </section>
 
   <script>
     window.POCKETSFULL_CONFIG = {
