@@ -12,7 +12,7 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #0f1720 !important;
+  background: #000000 !important;
   color: #ffffff;
 }
 
@@ -22,8 +22,8 @@ body {
   min-height: 100%;
   display: grid;
   place-items: center;
-  padding: 24px;
-  background: #0f1720;
+  padding: calc(var(--pf-safe-top) + 24px) 24px 24px;
+  background: #000000;
 }
 
 .card {
@@ -61,7 +61,7 @@ p {
   border-radius: 12px;
   text-align: left;
   line-height: 1.45;
-  background: #17212b;
+  background: #111111;
 }
 
 button {
@@ -79,9 +79,12 @@ button {
 
 .wall-shell {
   position: fixed;
-  inset: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: var(--pf-safe-top);
   overflow: hidden;
-  background: #0f1720;
+  background: #000000;
 }
 
 .wall-frame {
