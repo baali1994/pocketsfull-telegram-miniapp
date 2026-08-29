@@ -25,13 +25,14 @@
     const contentTop = Number(tg?.contentSafeAreaInset?.top || 0);
     const safeTop = Number(tg?.safeAreaInset?.top || 0);
 
-    // Telegram can report a very small/zero content inset on some iOS builds
-    // even though the Close and menu controls still cover the page. Keep a
-    // guaranteed clear header zone, while allowing Telegram to request more.
-    const minimumTelegramChrome = 104;
+    // Keep the PocketsFull wall completely below Telegram's Close/menu row.
+    // Some Telegram iOS builds report an inset that is smaller than the
+    // visible controls, so enforce a larger minimum and still honor a larger
+    // value when Telegram reports one.
+    const minimumTelegramChrome = 128;
     const telegramReportedTop = Math.max(
       contentTop,
-      safeTop > 0 ? safeTop + 56 : 0
+      safeTop > 0 ? safeTop + 64 : 0
     );
     const top = Math.max(minimumTelegramChrome, telegramReportedTop);
 
