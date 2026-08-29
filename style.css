@@ -1,6 +1,7 @@
 :root {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-  --pf-safe-top: 88px;
+  color-scheme: dark;
+  --pf-safe-top: 0px;
 }
 
 * { box-sizing: border-box; }
@@ -12,7 +13,7 @@ body {
   height: 100%;
   overflow: hidden;
   background: #0f1720 !important;
-  color: var(--tg-theme-text-color, #ffffff);
+  color: #ffffff;
 }
 
 [hidden] { display: none !important; }
@@ -21,7 +22,7 @@ body {
   min-height: 100%;
   display: grid;
   place-items: center;
-  padding: calc(var(--pf-safe-top) + 24px) 24px 24px;
+  padding: 24px;
   background: #0f1720;
 }
 
@@ -78,10 +79,7 @@ button {
 
 .wall-shell {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  top: var(--pf-safe-top);
+  inset: 0;
   overflow: hidden;
   background: #0f1720;
 }
