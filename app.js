@@ -62,6 +62,12 @@
     }
   }
 
+  function countryFlag(code) {
+    const value = String(code || "").trim().toUpperCase();
+    if (!/^[A-Z]{2}$/.test(value)) return "";
+    return String.fromCodePoint(...[...value].map((letter) => 127397 + letter.charCodeAt(0)));
+  }
+
   function updateUnread() {
     if (unreadCount <= 0) {
       chatUnreadEl.hidden = true;
@@ -105,6 +111,15 @@
       username.className = "chat-username";
       username.textContent = ` · @${message.username}`;
       meta.appendChild(username);
+    }
+
+    const flag = countryFlag(message.country_code);
+    if (flag) {
+      const country = document.createElement("span");
+      country.className = "chat-country";
+      country.textContent = ` · ${flag}`;
+      country.title = String(message.country_code).toUpperCase();
+      meta.appendChild(country);
     }
 
     const time = document.createElement("span");
