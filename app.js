@@ -6,8 +6,17 @@
   const wallShellEl = document.getElementById("wallShell");
   const wallFrameEl = document.getElementById("wallFrame");
 
+  const topActionsEl = document.getElementById("topActions");
+  const checkinButtonEl = document.getElementById("checkinButton");
+  const checkinLabelEl = document.getElementById("checkinLabel");
   const chatLauncherEl = document.getElementById("chatLauncher");
+  const chatOnlineEl = document.getElementById("chatOnline");
   const chatUnreadEl = document.getElementById("chatUnread");
+
+  const notifyPromptEl = document.getElementById("notifyPrompt");
+  const notifyEnableEl = document.getElementById("notifyEnable");
+  const notifyLaterEl = document.getElementById("notifyLater");
+
   const chatPanelEl = document.getElementById("chatPanel");
   const chatCloseEl = document.getElementById("chatClose");
   const chatNoticeEl = document.getElementById("chatNotice");
@@ -24,6 +33,8 @@
   let realtimeClient = null;
   let realtimeChannel = null;
   let fallbackTimer = null;
+  let communityTimer = null;
+  let latestCommunityState = null;
   const seenMessageIds = new Set();
 
   function setStatus(text) {
@@ -35,7 +46,8 @@
   function showError(message) {
     loadingEl.hidden = false;
     wallShellEl.hidden = true;
-    chatLauncherEl.hidden = true;
+    topActionsEl.hidden = true;
+    notifyPromptEl.hidden = true;
     chatPanelEl.hidden = true;
     statusEl.textContent = "";
     errorEl.textContent = message;
@@ -78,6 +90,24 @@
     chatUnreadEl.textContent = unreadCount > 99 ? "99+" : String(unreadCount);
   }
 
+  function updateEngagementUi(state) {
+    if (!state) return;
+    latestCommunityState = state;
+
+    const online = Math.max(1, Number(state.onlineCount || 1));
+    chatOnlineEl.hidden = false;
+    chatOnlineEl.textContent = `${online} online`;
+
+    const streak = Math.max(0, Number(state.streak || 0));
+    if (state.checkedInToday) {
+      checkinButtonEl.classList.add("checked");
+      checkinLabelEl.textContent = streak > 0 ? `🔥 ${streak} day${streak === 1 ? "" : "s"}` : "✓ Checked in";
+    } else {
+      checkinButtonEl.classList.remove("checked");
+      checkinLabelEl.textContent = streak > 0 ? `🔥 Check in · ${streak}` : "🔥 Check in";
+    }
+  }
+
   function scrollChatToBottom(force = false) {
     const distance = chatMessagesEl.scrollHeight - chatMessagesEl.scrollTop - chatMessagesEl.clientHeight;
     if (force || distance < 160) {
@@ -90,7 +120,6 @@
   function addMessage(message, { forceScroll = false } = {}) {
     if (!message?.id || seenMessageIds.has(message.id)) return;
     seenMessageIds.add(message.id);
-
     chatEmptyEl.hidden = true;
 
     const own = Boolean(session?.uid && message.user_key === session.uid);
@@ -142,9 +171,8 @@
     scrollChatToBottom(forceScroll || own);
   }
 
-  async function chatRequest(endpoint, extra = {}) {
+  async function apiRequest(endpoint, extra = {}) {
     if (!telegramApp?.initData) throw new Error("Telegram session is unavailable");
-
     const response = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -154,23 +182,39 @@
 
     let payload = null;
     try { payload = await response.json(); } catch {}
-    if (!response.ok || !payload?.ok) {
-      throw new Error(payload?.error || "Chat request failed");
-    }
+    if (!response.ok || !payload?.ok) throw new Error(payload?.error || "Request failed");
     return payload;
+  }
+
+  async function refreshCommunityState({ silent = true } = {}) {
+    if (!session) return;
+    try {
+      const state = await apiRequest(window.POCKETSFULL_CONFIG.communityStateEndpoint, {
+        timezoneOffsetMinutes: new Date().getTimezoneOffset()
+      });
+      updateEngagementUi(state);
+      if (state.writeAccess) notifyPromptEl.hidden = true;
+    } catch (error) {
+      if (!silent) {
+        try { telegramApp?.showAlert?.(error?.message || "Unable to refresh community status"); } catch {}
+      }
+    }
   }
 
   async function loadChatHistory({ silent = false } = {}) {
     if (!session) return;
-
     if (!silent) setChatNotice("Loading recent messages…");
+
     try {
-      const payload = await chatRequest(window.POCKETSFULL_CONFIG.chatHistoryEndpoint);
+      const payload = await apiRequest(window.POCKETSFULL_CONFIG.chatHistoryEndpoint);
       const messages = Array.isArray(payload.messages) ? payload.messages : [];
       messages.forEach((message) => addMessage(message));
       chatLoaded = true;
       chatEmptyEl.hidden = messages.length > 0 || seenMessageIds.size > 0;
-      if (!silent) setChatNotice("Messages are visible to everyone using the PocketsFull Mini App.");
+      if (!silent) {
+        const online = Math.max(1, Number(latestCommunityState?.onlineCount || 1));
+        setChatNotice(`${online} online · Messages are visible to everyone.`);
+      }
       scrollChatToBottom(true);
     } catch (error) {
       if (!silent) setChatNotice(error?.message || "Unable to load chat", true);
@@ -217,21 +261,26 @@
 
   async function openChat() {
     if (!session) return;
+    notifyPromptEl.hidden = true;
     chatPanelEl.hidden = false;
-    chatLauncherEl.hidden = true;
+    topActionsEl.hidden = true;
     unreadCount = 0;
     updateUnread();
     try { telegramApp?.HapticFeedback?.impactOccurred?.("light"); } catch {}
 
+    await refreshCommunityState();
     if (!chatLoaded) await loadChatHistory();
-    else scrollChatToBottom(true);
-
+    else {
+      const online = Math.max(1, Number(latestCommunityState?.onlineCount || 1));
+      setChatNotice(`${online} online · Messages are visible to everyone.`);
+      scrollChatToBottom(true);
+    }
     setTimeout(() => chatInputEl.focus(), 100);
   }
 
   function closeChat() {
     chatPanelEl.hidden = true;
-    chatLauncherEl.hidden = false;
+    topActionsEl.hidden = false;
     chatInputEl.blur();
   }
 
@@ -245,10 +294,11 @@
     setChatNotice("Sending…");
 
     try {
-      const payload = await chatRequest(window.POCKETSFULL_CONFIG.chatSendEndpoint, { message });
+      const payload = await apiRequest(window.POCKETSFULL_CONFIG.chatSendEndpoint, { message });
       chatInputEl.value = "";
       if (payload.message) addMessage(payload.message, { forceScroll: true });
-      setChatNotice("Messages are visible to everyone using the PocketsFull Mini App.");
+      const online = Math.max(1, Number(latestCommunityState?.onlineCount || 1));
+      setChatNotice(`${online} online · Messages are visible to everyone.`);
       try { telegramApp?.HapticFeedback?.notificationOccurred?.("success"); } catch {}
     } catch (error) {
       setChatNotice(error?.message || "Unable to send message", true);
@@ -260,41 +310,115 @@
     }
   }
 
+  async function performCheckin() {
+    if (!session || checkinButtonEl.disabled) return;
+    checkinButtonEl.disabled = true;
+    const previous = checkinLabelEl.textContent;
+    checkinLabelEl.textContent = "Checking in…";
+
+    try {
+      const payload = await apiRequest(window.POCKETSFULL_CONFIG.dailyCheckinEndpoint, {
+        timezoneOffsetMinutes: new Date().getTimezoneOffset()
+      });
+      updateEngagementUi({
+        ...(latestCommunityState || {}),
+        checkedInToday: true,
+        streak: payload.streak
+      });
+      try { telegramApp?.HapticFeedback?.notificationOccurred?.("success"); } catch {}
+      if (payload.newCheckin) {
+        try { telegramApp?.showPopup?.({ title: "Checked in", message: `Your streak is now ${payload.streak} day${payload.streak === 1 ? "" : "s"}.`, buttons: [{ type: "ok" }] }); } catch {}
+      }
+    } catch (error) {
+      checkinLabelEl.textContent = previous;
+      try { telegramApp?.showAlert?.(error?.message || "Unable to check in"); } catch {}
+    } finally {
+      checkinButtonEl.disabled = false;
+    }
+  }
+
+  function notificationPromptDismissedRecently() {
+    try {
+      const value = Number(localStorage.getItem("pf_notify_prompt_dismissed_at") || 0);
+      return value > 0 && Date.now() - value < 7 * 24 * 60 * 60 * 1000;
+    } catch {
+      return false;
+    }
+  }
+
+  function dismissNotificationPrompt() {
+    notifyPromptEl.hidden = true;
+    try { localStorage.setItem("pf_notify_prompt_dismissed_at", String(Date.now())); } catch {}
+  }
+
+  function maybeShowNotificationPrompt() {
+    if (!session || session.writeAccess) return;
+    if (telegramApp?.initDataUnsafe?.user?.allows_write_to_pm) return;
+    if (notificationPromptDismissedRecently()) return;
+    setTimeout(() => {
+      if (session && chatPanelEl.hidden && !latestCommunityState?.writeAccess) notifyPromptEl.hidden = false;
+    }, 1800);
+  }
+
+  async function enableNotifications() {
+    if (!telegramApp || notifyEnableEl.disabled) return;
+    notifyEnableEl.disabled = true;
+    notifyLaterEl.disabled = true;
+
+    try {
+      if (!telegramApp.isVersionAtLeast?.("6.9") || !telegramApp.requestWriteAccess) {
+        throw new Error("Please update Telegram to enable bot alerts.");
+      }
+
+      telegramApp.requestWriteAccess(async (allowed) => {
+        try {
+          const payload = await apiRequest(window.POCKETSFULL_CONFIG.writeAccessEndpoint, { allowed: Boolean(allowed) });
+          if (payload.writeAccess) {
+            session.writeAccess = true;
+            notifyPromptEl.hidden = true;
+            try { localStorage.removeItem("pf_notify_prompt_dismissed_at"); } catch {}
+            try { telegramApp?.HapticFeedback?.notificationOccurred?.("success"); } catch {}
+          } else {
+            dismissNotificationPrompt();
+          }
+        } catch {
+          if (!allowed) dismissNotificationPrompt();
+        } finally {
+          notifyEnableEl.disabled = false;
+          notifyLaterEl.disabled = false;
+        }
+      });
+    } catch (error) {
+      notifyEnableEl.disabled = false;
+      notifyLaterEl.disabled = false;
+      try { telegramApp?.showAlert?.(error?.message || "Unable to enable alerts"); } catch {}
+    }
+  }
+
   async function launch() {
     try {
       telegramApp = window.Telegram?.WebApp;
-
-      if (!telegramApp) {
-        throw new Error("Telegram Mini App API was not found. Open this page from @pocketsfull_bot.");
-      }
+      if (!telegramApp) throw new Error("Telegram Mini App API was not found. Open this page from @pocketsfull_bot.");
 
       makeTelegramChromeBlack(telegramApp);
       telegramApp.ready();
       telegramApp.expand();
 
       try {
-        if (telegramApp.isVersionAtLeast?.("8.0") && !telegramApp.isFullscreen) {
-          telegramApp.requestFullscreen?.();
-        }
+        if (telegramApp.isVersionAtLeast?.("8.0") && !telegramApp.isFullscreen) telegramApp.requestFullscreen?.();
       } catch {}
 
       makeTelegramChromeBlack(telegramApp);
-
-      if (!telegramApp.initData) {
-        throw new Error("No Telegram authentication data was received. Open the Mini App from @pocketsfull_bot.");
-      }
+      if (!telegramApp.initData) throw new Error("No Telegram authentication data was received. Open the Mini App from @pocketsfull_bot.");
 
       setStatus("Verifying your Telegram account…");
-
       const response = await fetch(window.POCKETSFULL_CONFIG.sessionEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ initData: telegramApp.initData }),
         cache: "no-store"
       });
-
       const payload = await response.json();
-
       if (!response.ok || !payload.ok || !payload.targetUrl) {
         throw new Error(payload.error || "Unable to create a secure PocketsFull session.");
       }
@@ -303,18 +427,26 @@
       setStatus("Opening PocketsFull…");
       wallFrameEl.src = payload.targetUrl;
       wallShellEl.hidden = false;
-      chatLauncherEl.hidden = false;
+      topActionsEl.hidden = false;
       loadingEl.hidden = true;
 
       initializeRealtime();
+      await refreshCommunityState();
+      maybeShowNotificationPrompt();
+
+      if (communityTimer) clearInterval(communityTimer);
+      communityTimer = setInterval(() => refreshCommunityState(), 45_000);
     } catch (err) {
       showError(err?.message || "Something went wrong.");
     }
   }
 
+  checkinButtonEl.addEventListener("click", performCheckin);
   chatLauncherEl.addEventListener("click", openChat);
   chatCloseEl.addEventListener("click", closeChat);
   chatFormEl.addEventListener("submit", sendChatMessage);
+  notifyEnableEl.addEventListener("click", enableNotifications);
+  notifyLaterEl.addEventListener("click", dismissNotificationPrompt);
   retryEl.addEventListener("click", launch);
 
   launch();
