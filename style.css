@@ -149,28 +149,28 @@ button {
 }
 
 .chat-header {
+  position: relative;
   min-height: 64px;
   padding: 11px 14px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: center;
   border-bottom: 1px solid rgba(255,255,255,.08);
   background: #101820;
 }
 
-.chat-header strong {
+.chat-title {
   display: block;
+  text-align: center;
   font-size: 17px;
-}
-
-.chat-subtitle {
-  margin-top: 2px;
-  color: #91a0af;
-  font-size: 12px;
+  font-weight: 700;
 }
 
 .chat-close {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 38px;
   height: 38px;
   border-radius: 50%;
