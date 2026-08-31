@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#000000">
   <title>PocketsFull</title>
   <style>html,body{margin:0;background:#000!important;color-scheme:dark}</style>
-  <link rel="stylesheet" href="./style.css?v=14">
+  <link rel="stylesheet" href="./style.css?v=15">
   <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
@@ -30,10 +30,27 @@
     </section>
   </main>
 
-  <button id="chatLauncher" class="chat-launcher" type="button" hidden>
-    <span>💬 Chat</span>
-    <span id="chatUnread" class="chat-unread" hidden>0</span>
-  </button>
+  <div id="topActions" class="top-actions" hidden>
+    <button id="checkinButton" class="top-pill checkin-button" type="button">
+      <span id="checkinLabel">🔥 Check in</span>
+    </button>
+    <button id="chatLauncher" class="top-pill chat-launcher" type="button">
+      <span>💬 Chat</span>
+      <span id="chatOnline" class="chat-online" hidden></span>
+      <span id="chatUnread" class="chat-unread" hidden>0</span>
+    </button>
+  </div>
+
+  <section id="notifyPrompt" class="notify-prompt" hidden aria-label="Enable Telegram alerts">
+    <div class="notify-copy">
+      <strong>Get useful PocketsFull alerts</strong>
+      <span>New opportunities and important community updates on Telegram.</span>
+    </div>
+    <div class="notify-actions">
+      <button id="notifyLater" class="notify-later" type="button">Not now</button>
+      <button id="notifyEnable" class="notify-enable" type="button">Enable alerts</button>
+    </div>
+  </section>
 
   <section id="wallShell" class="wall-shell" hidden>
     <iframe
@@ -65,12 +82,15 @@
   <script>
     window.POCKETSFULL_CONFIG = {
       sessionEndpoint: "https://lfnjernrgkdtfetyoghq.supabase.co/functions/v1/pocketsfull-telegram?action=session",
+      communityStateEndpoint: "https://lfnjernrgkdtfetyoghq.supabase.co/functions/v1/pocketsfull-telegram?action=community-state",
+      dailyCheckinEndpoint: "https://lfnjernrgkdtfetyoghq.supabase.co/functions/v1/pocketsfull-telegram?action=daily-checkin",
+      writeAccessEndpoint: "https://lfnjernrgkdtfetyoghq.supabase.co/functions/v1/pocketsfull-telegram?action=write-access",
       chatHistoryEndpoint: "https://lfnjernrgkdtfetyoghq.supabase.co/functions/v1/pocketsfull-telegram?action=chat-history",
       chatSendEndpoint: "https://lfnjernrgkdtfetyoghq.supabase.co/functions/v1/pocketsfull-telegram?action=chat-send",
       supabaseUrl: "https://lfnjernrgkdtfetyoghq.supabase.co",
       supabasePublishableKey: "sb_publishable_zW_eXePChSo8yaTw4aJ8Lg_IUHe9bZK"
     };
   </script>
-  <script src="./app.js?v=15"></script>
+  <script src="./app.js?v=16"></script>
 </body>
 </html>
