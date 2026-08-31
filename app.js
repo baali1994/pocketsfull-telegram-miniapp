@@ -103,10 +103,10 @@
 
     const name = document.createElement("span");
     name.className = "chat-name";
-    name.textContent = own ? "You" : (message.display_name || "Telegram User");
+    name.textContent = message.display_name || "Telegram User";
     meta.appendChild(name);
 
-    if (!own && message.username) {
+    if (message.username) {
       const username = document.createElement("span");
       username.className = "chat-username";
       username.textContent = ` · @${message.username}`;
