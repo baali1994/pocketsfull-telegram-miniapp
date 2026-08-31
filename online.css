@@ -1,0 +1,115 @@
+.online-users-button {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #1c2732;
+  color: #dce7ef;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.online-users-button:active {
+  transform: translateY(calc(-50% + 1px));
+}
+
+.online-users-panel {
+  position: fixed;
+  z-index: 70;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: var(--pf-top-space);
+  display: flex;
+  flex-direction: column;
+  background: #0b1118;
+  color: #ffffff;
+}
+
+.online-users-header {
+  position: relative;
+  min-height: 64px;
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  background: #101820;
+  font-size: 17px;
+}
+
+.online-users-close {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #1c2732;
+  color: #ffffff;
+  font-size: 18px;
+}
+
+.online-users-status {
+  padding: 10px 14px;
+  text-align: center;
+  color: #96a5b3;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.online-users-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 12px calc(16px + env(safe-area-inset-bottom));
+}
+
+.online-user-row {
+  min-height: 52px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.online-user-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #39c66d;
+  box-shadow: 0 0 0 3px rgba(57,198,109,.12);
+  flex: 0 0 auto;
+}
+
+.online-user-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #edf3f7;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.online-user-flag {
+  flex: 0 0 auto;
+  font-size: 18px;
+}
+
+@media (max-width: 360px) {
+  .online-users-button {
+    padding: 0 8px;
+    font-size: 10px;
+  }
+}
