@@ -1,30 +1,52 @@
-/* Telegram Mini App wrapper scrolling fix.
+/* Telegram Mini App wrapper scrolling fix v2.
    Keep this isolated from the embedded PocketsFull survey-wall CSS. */
 
 html,
 body {
-  overscroll-behavior-y: contain;
-  touch-action: pan-y;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: auto;
+  touch-action: auto;
 }
 
+/* Remove the original fixed/locked viewport around the cross-origin iframe.
+   Keep the 100px Telegram/header allowance, but let the page participate in
+   normal document flow so Telegram WebView does not treat it as a frozen pane. */
 .wall-shell {
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  height: calc(100dvh - var(--pf-top-space)) !important;
+  min-height: calc(100vh - var(--pf-top-space)) !important;
+  margin-top: var(--pf-top-space) !important;
+  overflow: auto !important;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
-  touch-action: pan-y;
+  overscroll-behavior: auto;
+  touch-action: auto;
 }
 
 .wall-frame {
   display: block;
-  width: 100%;
-  height: 100%;
-  min-height: 100%;
-  touch-action: pan-y;
-  overscroll-behavior-y: contain;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  border: 0;
+  overflow: auto !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: auto;
+  touch-action: auto;
+  pointer-events: auto;
 }
 
-/* Keep chat's own scrolling isolated from Telegram's minimize gesture. */
+/* Keep chat's own scrolling independent. */
 .chat-messages,
 .online-users-list {
   -webkit-overflow-scrolling: touch;
