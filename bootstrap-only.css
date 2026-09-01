@@ -1,0 +1,26 @@
+/* Bootstrap-only mode: keep the Telegram Mini App visually blank until
+   authentication/attribution finishes and the survey wall becomes the
+   top-level WebView page. This prevents the legacy chat/check-in UI from
+   flashing for a moment before navigation. */
+
+html,
+body {
+  margin: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: #000 !important;
+  overflow: hidden !important;
+}
+
+/* Keep required legacy DOM nodes available to app.js, but never render them. */
+#loading,
+#topActions,
+#notifyPrompt,
+#wallShell,
+#chatPanel,
+#onlineUsersPanel {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
