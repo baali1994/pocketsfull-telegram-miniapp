@@ -1,52 +1,49 @@
-/* Telegram Mini App wrapper scrolling fix v2.
-   Keep this isolated from the embedded PocketsFull survey-wall CSS. */
+/* Telegram Mini App wrapper scrolling fix v3.
+   Goal: keep the Telegram wrapper stationary and let the embedded
+   PocketsFull survey page itself receive vertical scroll gestures. */
 
 html,
 body {
   width: 100% !important;
-  height: auto !important;
+  height: 100% !important;
   min-height: 100% !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: auto;
-  touch-action: auto;
+  margin: 0 !important;
+  overflow: hidden !important;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
-/* Remove the original fixed/locked viewport around the cross-origin iframe.
-   Keep the 100px Telegram/header allowance, but let the page participate in
-   normal document flow so Telegram WebView does not treat it as a frozen pane. */
+/* Fixed viewport for the survey wall. The wrapper itself must NOT scroll. */
 .wall-shell {
-  position: relative !important;
-  inset: auto !important;
-  top: auto !important;
-  left: auto !important;
-  right: auto !important;
-  bottom: auto !important;
-  width: 100% !important;
-  height: calc(100dvh - var(--pf-top-space)) !important;
-  min-height: calc(100vh - var(--pf-top-space)) !important;
-  margin-top: var(--pf-top-space) !important;
-  overflow: auto !important;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: auto;
+  position: fixed !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  top: var(--pf-top-space) !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  overscroll-behavior: none;
   touch-action: auto;
 }
 
+/* The iframe is the actual scroll surface. Do not constrain its touch gestures. */
 .wall-frame {
   display: block;
   width: 100% !important;
   height: 100% !important;
-  min-height: 100% !important;
+  min-height: 0 !important;
   border: 0;
   overflow: auto !important;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: auto;
-  touch-action: auto;
-  pointer-events: auto;
+  touch-action: auto !important;
+  pointer-events: auto !important;
 }
 
-/* Keep chat's own scrolling independent. */
+/* Keep chat and online-user panels independently scrollable. */
 .chat-messages,
 .online-users-list {
   -webkit-overflow-scrolling: touch;
