@@ -6,110 +6,69 @@
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#000000">
   <title>PocketsFull</title>
-  <style>html,body{margin:0;background:#000!important;color-scheme:dark}</style>
-  <link rel="stylesheet" href="./style.css?v=15">
-  <link rel="stylesheet" href="./online.css?v=1">
-  <link rel="stylesheet" href="./scroll-fix.css?v=3">
-  <link rel="stylesheet" href="./bootstrap-only.css?v=1">
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+  </style>
   <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    try {
-      const tg = window.Telegram && window.Telegram.WebApp;
-      tg && tg.setHeaderColor && tg.setHeaderColor("#000000");
-      tg && tg.setBackgroundColor && tg.setBackgroundColor("#000000");
-      tg && tg.setBottomBarColor && tg.setBottomBarColor("#000000");
-    } catch (_) {}
-  </script>
 </head>
 <body>
-  <main id="loading" class="shell">
-    <section class="card" aria-live="polite">
-      <div class="logo">PF</div>
-      <h1>PocketsFull</h1>
-      <p id="status">Connecting securely to Telegram…</p>
-      <div id="error" class="error" hidden></div>
-      <button id="retry" type="button" hidden>Try again</button>
-    </section>
-  </main>
+<script>
+(async () => {
+  const SESSION_ENDPOINT = "https://lfnjernrgkdtfetyoghq.supabase.co/functions/v1/pocketsfull-session";
+  const ATTRIBUTION_ENDPOINT = "https://lfnjernrgkdtfetyoghq.supabase.co/functions/v1/pocketsfull-attribution";
 
-  <div id="topActions" class="top-actions" hidden>
-    <button id="checkinButton" class="top-pill checkin-button" type="button">
-      <span id="checkinLabel">🔥 Check in</span>
-    </button>
-    <button id="chatLauncher" class="top-pill chat-launcher" type="button">
-      <span>💬 Chat</span>
-      <span id="chatOnline" class="chat-online" hidden></span>
-      <span id="chatUnread" class="chat-unread" hidden>0</span>
-    </button>
-  </div>
+  const tg = window.Telegram?.WebApp;
+  if (!tg?.initData) throw new Error("Telegram authentication data unavailable");
 
-  <section id="notifyPrompt" class="notify-prompt" hidden aria-label="Enable Telegram alerts">
-    <div class="notify-copy">
-      <strong>Get useful PocketsFull alerts</strong>
-      <span>New opportunities and important community updates on Telegram.</span>
-    </div>
-    <div class="notify-actions">
-      <button id="notifyLater" class="notify-later" type="button">Not now</button>
-      <button id="notifyEnable" class="notify-enable" type="button">Enable alerts</button>
-    </div>
-  </section>
+  try { tg.setHeaderColor?.("#000000"); } catch {}
+  try { tg.setBackgroundColor?.("#000000"); } catch {}
+  try { tg.setBottomBarColor?.("#000000"); } catch {}
+  try { tg.ready?.(); } catch {}
+  try { tg.expand?.(); } catch {}
+  try {
+    if (tg.isVersionAtLeast?.("7.7")) tg.disableVerticalSwipes?.();
+  } catch {}
+  try {
+    if (tg.isVersionAtLeast?.("8.0") && !tg.isFullscreen) tg.requestFullscreen?.();
+  } catch {}
 
-  <section id="wallShell" class="wall-shell" hidden>
-    <iframe
-      id="wallFrame"
-      class="wall-frame"
-      title="PocketsFull Earn"
-      scrolling="yes"
-      referrerpolicy="strict-origin-when-cross-origin"
-      allow="clipboard-read; clipboard-write; payment"
-      allowfullscreen
-    ></iframe>
-  </section>
+  const sessionResponse = await fetch(SESSION_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ initData: tg.initData }),
+    cache: "no-store"
+  });
 
-  <section id="chatPanel" class="chat-panel" hidden aria-label="PocketsFull community chat">
-    <header class="chat-header">
-      <button id="onlineUsersButton" class="online-users-button" type="button" aria-label="Show online users">👥 <span id="onlineUsersCount">Online</span></button>
-      <strong class="chat-title">PocketsFull</strong>
-      <button id="chatClose" class="chat-close" type="button" aria-label="Close chat">✕</button>
-    </header>
+  let session = null;
+  try { session = await sessionResponse.json(); } catch {}
+  if (!sessionResponse.ok || !session?.ok || !session?.targetUrl) {
+    throw new Error(session?.error || "Unable to create PocketsFull session");
+  }
 
-    <div id="chatNotice" class="chat-notice">Messages are visible to everyone using the PocketsFull Mini App.</div>
-    <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
-    <div id="chatEmpty" class="chat-empty" hidden>No messages yet. Say hello 👋</div>
+  // Save Propeller/AdsGram attribution before leaving the Telegram bootstrap.
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const attributionResponse = await fetch(ATTRIBUTION_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData: tg.initData }),
+        cache: "no-store"
+      });
+      if (attributionResponse.ok) break;
+    } catch {}
+    if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 200));
+  }
 
-    <form id="chatForm" class="chat-composer">
-      <input id="chatInput" type="text" maxlength="500" autocomplete="off" placeholder="Message everyone…" aria-label="Chat message">
-      <button id="chatSend" type="submit">Send</button>
-    </form>
-  </section>
-
-  <section id="onlineUsersPanel" class="online-users-panel" hidden aria-label="Online users">
-    <header class="online-users-header">
-      <strong>Online now</strong>
-      <button id="onlineUsersClose" class="online-users-close" type="button" aria-label="Close online users">✕</button>
-    </header>
-    <div id="onlineUsersStatus" class="online-users-status">Loading…</div>
-    <div id="onlineUsersList" class="online-users-list"></div>
-  </section>
-
-  <script>
-    window.POCKETSFULL_CONFIG = {
-      sessionEndpoint: "https://lfnjernrgkdtfetyoghq.supabase.co/functions/v1/pocketsfull-session",
-      communityStateEndpoint: "https://lfnjernrgkdtfetyoghq.supabase.co/functions/v1/pocketsfull-telegram?action=community-state",
-      dailyCheckinEndpoint: "https://lfnjernrgkdtfetyoghq.supabase.co/functions/v1/pocketsfull-telegram?action=daily-checkin",
-      writeAccessEndpoint: "https://lfnjernrgkdtfetyoghq.supabase.co/functions/v1/pocketsfull-telegram?action=write-access",
-      chatHistoryEndpoint: "https://lfnjernrgkdtfetyoghq.supabase.co/functions/v1/pocketsfull-telegram?action=chat-history",
-      chatSendEndpoint: "https://lfnjernrgkdtfetyoghq.supabase.co/functions/v1/pocketsfull-telegram?action=chat-send",
-      onlineUsersEndpoint: "https://lfnjernrgkdtfetyoghq.supabase.co/functions/v1/pocketsfull-online-users",
-      supabaseUrl: "https://lfnjernrgkdtfetyoghq.supabase.co",
-      supabasePublishableKey: "sb_publishable_zW_eXePChSo8yaTw4aJ8Lg_IUHe9bZK"
-    };
-  </script>
-  <script src="./telegram-scroll-fix.js?v=1"></script>
-  <script src="./app.js?v=16"></script>
-  <script src="./online.js?v=1"></script>
-  <script src="./notify-immediate.js?v=1"></script>
-  <script src="./tracking.js?v=2"></script>
+  window.location.replace(session.targetUrl);
+})().catch((error) => {
+  console.error("PocketsFull bootstrap failed", error);
+});
+</script>
 </body>
 </html>
