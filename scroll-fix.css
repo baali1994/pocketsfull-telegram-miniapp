@@ -1,0 +1,33 @@
+/* Telegram Mini App wrapper scrolling fix.
+   Keep this isolated from the embedded PocketsFull survey-wall CSS. */
+
+html,
+body {
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+}
+
+.wall-shell {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+}
+
+.wall-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
+}
+
+/* Keep chat's own scrolling isolated from Telegram's minimize gesture. */
+.chat-messages,
+.online-users-list {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+}
