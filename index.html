@@ -34,9 +34,6 @@
   try {
     if (tg.isVersionAtLeast?.("7.7")) tg.disableVerticalSwipes?.();
   } catch {}
-  try {
-    if (tg.isVersionAtLeast?.("8.0") && !tg.isFullscreen) tg.requestFullscreen?.();
-  } catch {}
 
   const sessionResponse = await fetch(SESSION_ENDPOINT, {
     method: "POST",
