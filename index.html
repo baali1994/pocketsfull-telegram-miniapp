@@ -6,6 +6,9 @@
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#000000">
   <title>PocketsFull</title>
+  <link rel="preconnect" href="https://lfnjernrgkdtfetyoghq.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://uf.pocketsfull.ai" crossorigin>
+  <link rel="dns-prefetch" href="//uf.pocketsfull.ai">
   <style>
     html, body {
       margin: 0;
@@ -32,10 +35,22 @@
   try { tg.ready?.(); } catch {}
   try { tg.expand?.(); } catch {}
 
+  const payload = JSON.stringify({ initData: tg.initData });
+
+  // Start attribution immediately, but never make the user wait for it.
+  // keepalive allows the request to finish while we navigate to UF.
+  void fetch(ATTRIBUTION_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: payload,
+    cache: "no-store",
+    keepalive: true
+  }).catch(() => {});
+
   const sessionResponse = await fetch(SESSION_ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ initData: tg.initData }),
+    body: payload,
     cache: "no-store"
   });
 
@@ -45,19 +60,7 @@
     throw new Error(session?.error || "Unable to create PocketsFull session");
   }
 
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    try {
-      const attributionResponse = await fetch(ATTRIBUTION_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ initData: tg.initData }),
-        cache: "no-store"
-      });
-      if (attributionResponse.ok) break;
-    } catch {}
-    if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 150));
-  }
-
+  // Open UF as soon as the secure session URL is ready.
   window.location.replace(session.targetUrl);
 })().catch((error) => {
   console.error("PocketsFull bootstrap failed", error);
